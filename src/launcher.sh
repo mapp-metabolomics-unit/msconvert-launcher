@@ -42,3 +42,4 @@ else
     echo "Error: Input path is not a valid file or directory."
     exit 1
 fi
+
