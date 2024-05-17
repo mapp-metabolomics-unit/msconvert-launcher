@@ -9,7 +9,7 @@ usage() {
 }
 
 # Parse command line arguments for input and output directories
-while getopts ":i:o:" opt; do
+while getopts "i:o:" opt; do
     case $opt in
         i) input_path="$OPTARG" ;;
         o) output_dir="$OPTARG" ;;
