@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Define input and output directories
-input_dir="/media/share/mapp/public/QE_plus_unifr/test/raw"
-output_dir="/media/share/mapp/public/QE_plus_unifr/test/converted"
-log_file="/media/share/mapp/public/QE_plus_unifr/test/logfile.log"
-processed_files="/media/share/mapp/public/QE_plus_unifr/test/processed_files.txt"
+input_dir="/media/share/mapp/public/QE_plus_unifr/raw"
+output_dir="/media/share/mapp/public/QE_plus_unifr/converted"
+log_file="/media/share/mapp/public/QE_plus_unifr/logfile.log"
+processed_files="/media/share/mapp/public/QE_plus_unifr/processed_files.txt"
 
 # Create processed_files.txt if it doesn't exist
 if [ ! -f "$processed_files" ]; then
