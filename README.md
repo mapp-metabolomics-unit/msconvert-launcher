@@ -1,5 +1,5 @@
 # msconvert-launcher
-Script to launch msconvert jobs on Windows
+Script to launch msconvert jobs on Linux
 
 
 
