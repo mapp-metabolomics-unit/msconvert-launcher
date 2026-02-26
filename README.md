@@ -1,6 +1,90 @@
 # msconvert-launcher
 Script to launch msconvert jobs on Linux
 
+## How the launcher scripts work
+
+This repo contains two cron-friendly converters:
+- `src/launcher_QEHFX.sh`
+- `src/launcher_QEplus.sh`
+
+Each script continuously watches its own `raw` folder and converts `.raw` / `.RAW` files to `mzML` in the configured `converted` folder.
+
+### Marker system (`processed_files.txt`)
+
+Each script maintains a success ledger in:
+- `/mnt/bigdata/mapp/public/QE_HFX_unifr/processed_files.txt`
+- `/mnt/bigdata/mapp/public/QE_plus_unifr/processed_files.txt`
+
+Format:
+- `<full/path/to/file>|<size_in_bytes>`
+
+Behavior:
+- A source file is converted only when its expected `.mzML` is missing (or marker/output state does not match).
+- After a successful conversion and non-empty output, a marker is appended.
+- If `.mzML` already exists but marker is missing, the script adds the marker.
+- If marker exists but output is missing, the file is retried and failure is logged.
+
+Additional related file:
+- `failed_files.txt` stores failed conversion attempts with timestamps.
+
+Format:
+- `<timestamp>|<file path>|<file path>|<size_in_bytes>`
+
+Interpretation:
+- The value used for deduplication is `<file path>|<size_in_bytes>`.
+- `failed_total` in logs reports unique failed descriptors, not raw append lines.
+
+Startup behavior:
+- On each launch, `failed_files.txt` is deduplicated in-place by descriptor so duplicates do not accumulate.
+- `failed_files` lookup now uses descriptor cache in-memory; a descriptor that is already present is never appended again.
+
+The script can suppress repetitive “skipping failed file” lines by default.
+To re-enable those per-file messages, set in each launcher:
+- `VERBOSE_PREVIOUS_FAILURE_LOGS=true`
+
+### Ignore list (`ignore_files.txt`)
+
+If a file should be skipped permanently (for example, known bad files), add either:
+- full path
+- or filename
+
+to:
+- `/mnt/bigdata/mapp/public/QE_HFX_unifr/ignore_files.txt`
+- `/mnt/bigdata/mapp/public/QE_plus_unifr/ignore_files.txt`
+
+One entry per line.  
+Ignored files are skipped before any conversion checks.  
+
+Example:
+```
+/mnt/bigdata/mapp/public/QE_HFX_unifr/raw/20250519_CVOL_bk_mapp_pre_00.raw
+another_filename.raw
+```
+
+To retry a failed file later:
+- remove its descriptor line from `failed_files.txt` (line format starts with timestamp, then full path, then descriptor).
+
+### Cron safety and idempotency
+
+- `flock` prevents overlapping runs.
+- Files still being written are skipped using a file-size stability check.
+- Logs are prefixed with timestamp and run id.
+
+### Runtime files
+
+- Log file:
+  - `/mnt/bigdata/mapp/public/QE_HFX_unifr/logfile.log`
+  - `/mnt/bigdata/mapp/public/QE_plus_unifr/logfile.log`
+- If these are missing, the scripts create them.
+
+### Cron example
+
+```cron
+* * * * * /bin/bash /git_repos/msconvert-launcher/src/launcher_QEHFX.sh
+* * * * * /bin/bash /git_repos/msconvert-launcher/src/launcher_QEplus.sh
+```
+
+You can add temporary `>> /tmp/qe*.out 2>&1` redirection in cron for debug output.
 
 
 Actually the script are not that useful and its maybe more convenient to launch the command directly in the command line. 
